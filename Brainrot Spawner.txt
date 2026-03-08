@@ -1,0 +1,221 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- GUI الأساسي
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "BrainrotSpawnerGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.fromOffset(400, 240)
+mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 18)
+corner.Parent = mainFrame
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -60, 0, 40)
+title.Position = UDim2.fromOffset(20, 15)
+title.BackgroundTransparency = 1
+title.Text = "Brainrot Spawner"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextSize = 26
+title.Font = Enum.Font.SourceSansBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = mainFrame
+
+local subtext = Instance.new("TextLabel")
+subtext.Size = UDim2.new(1, -40, 0, 25)
+subtext.Position = UDim2.fromOffset(20, 50)
+subtext.BackgroundTransparency = 1
+subtext.Text = "✓ spawned [] | ADMIN PANEL:"
+subtext.TextColor3 = Color3.fromRGB(160, 255, 160)
+subtext.TextSize = 18
+subtext.Font = Enum.Font.SourceSans
+subtext.TextXAlignment = Enum.TextXAlignment.Left
+subtext.Parent = mainFrame
+
+local inputArea = Instance.new("Frame")
+inputArea.Size = UDim2.new(1, -40, 0, 70)
+inputArea.Position = UDim2.fromOffset(20, 85)
+inputArea.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+inputArea.BorderSizePixel = 0
+inputArea.Parent = mainFrame
+
+local inputCorner = Instance.new("UICorner")
+inputCorner.CornerRadius = UDim.new(0, 12)
+inputCorner.Parent = inputArea
+
+local countInput = Instance.new("TextBox")
+countInput.Size = UDim2.new(1, 0, 1, 0)
+countInput.BackgroundTransparency = 1
+countInput.Text = ""
+countInput.TextColor3 = Color3.new(1, 1, 1)
+countInput.TextSize = 32
+countInput.Font = Enum.Font.SourceSans
+countInput.Parent = inputArea
+
+local loopBtn = Instance.new("TextButton")
+loopBtn.Size = UDim2.new(0.45, -5, 0, 55)
+loopBtn.Position = UDim2.new(0, 20, 1, -70)
+loopBtn.BackgroundColor3 = Color3.fromRGB(75, 100, 75)
+loopBtn.Text = "Loop: OFF"
+loopBtn.TextColor3 = Color3.new(1, 1, 1)
+loopBtn.TextSize = 22
+loopBtn.Font = Enum.Font.SourceSansBold
+loopBtn.Parent = mainFrame
+
+local loopCorner = Instance.new("UICorner")
+loopCorner.CornerRadius = UDim.new(0, 14)
+loopCorner.Parent = loopBtn
+
+local spawnBtn = Instance.new("TextButton")
+spawnBtn.Size = UDim2.new(0.45, -5, 0, 55)
+spawnBtn.Position = UDim2.new(1, -20, 1, -70)
+spawnBtn.AnchorPoint = Vector2.new(1, 0)
+spawnBtn.BackgroundColor3 = Color3.fromRGB(85, 85, 240)
+spawnBtn.Text = "SPAWN"
+spawnBtn.TextColor3 = Color3.new(1, 1, 1)
+spawnBtn.TextSize = 22
+spawnBtn.Font = Enum.Font.SourceSansBold
+spawnBtn.Parent = mainFrame
+
+local spawnCorner = Instance.new("UICorner")
+spawnCorner.CornerRadius = UDim.new(0, 14)
+spawnCorner.Parent = spawnBtn
+
+-----------------------------------------------------------
+-- منطق الزر
+-----------------------------------------------------------
+local isLooping = false
+local canSpawn = true
+
+local function updateDisplay(spawnText)
+	subtext.Text = "✓ spawned [" .. spawnText .. "] |ADMIN PANEL:"
+end
+
+loopBtn.MouseButton1Click:Connect(function()
+	isLooping = not isLooping
+	if isLooping then
+		loopBtn.Text = "Loop: ON"
+		loopBtn.BackgroundColor3 = Color3.fromRGB(50, 140, 50)
+	else
+		loopBtn.Text = "Loop: OFF"
+		loopBtn.BackgroundColor3 = Color3.fromRGB(75, 100, 75)
+	end
+end)
+
+-- شاشة الانتظار الكبيرة
+local function showWaitScreen()
+	local overlay = Instance.new("Frame")
+	overlay.Size = UDim2.new(5,0,5,0) -- كبير جدًا
+	overlay.Position = UDim2.new(-2,0,-2,0)
+	overlay.BackgroundColor3 = Color3.new(1,1,1)
+	overlay.BorderSizePixel = 0
+	overlay.ZIndex = 100
+	overlay.Parent = screenGui
+
+	local text = Instance.new("TextLabel")
+	text.Size = UDim2.new(1,0,1,0)
+	text.BackgroundTransparency = 1
+	text.Text = "Wait 5 Min To Spawn"
+	text.TextColor3 = Color3.new(0,0,0) -- بالأسود
+	text.Font = Enum.Font.SourceSansBold
+	text.TextScaled = true
+	text.ZIndex = 101
+	text.Parent = overlay
+
+	-- بعد 5 دقائق إزالة الشاشة
+	delay(300,function()
+		overlay:Destroy()
+	end)
+end
+
+local function doSpawn()
+	if not canSpawn then
+		return
+	end
+
+	local inputText = countInput.Text
+	if inputText == "" then
+		inputText = ""
+	end
+
+	updateDisplay(inputText)
+	print("Spawning: " .. inputText)
+
+	-- اظهار شاشة الانتظار
+	showWaitScreen()
+
+	-- تعطيل زر SPAWN لمدة 5 دقائق
+	canSpawn = false
+	delay(300, function()
+		canSpawn = true
+	end)
+end
+
+spawnBtn.MouseButton1Click:Connect(function()
+	doSpawn()
+end)
+
+-- Loop تلقائي كل 5 دقائق
+task.spawn(function()
+	while true do
+		task.wait(300)
+		if isLooping then
+			doSpawn()
+		end
+	end
+end)
+
+-----------------------------------------------------------
+-- تحريك GUI بالماوس
+-----------------------------------------------------------
+local UserInputService = game:GetService("UserInputService")
+local dragging = false
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+	local delta = input.Position - dragStart
+	mainFrame.Position = UDim2.new(
+		startPos.X.Scale,
+		startPos.X.Offset + delta.X,
+		startPos.Y.Scale,
+		startPos.Y.Offset + delta.Y
+	)
+end
+
+title.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPos = mainFrame.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+title.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement then
+		dragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		update(input)
+	end
+end)
