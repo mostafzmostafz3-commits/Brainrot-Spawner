@@ -1,221 +1,152 @@
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- GUI الأساسي
+-- ScreenGui كامل الشاشة
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "BrainrotSpawnerGui"
-screenGui.ResetOnSpawn = false
+screenGui.Name = "UltraHackerCinematic"
+screenGui.IgnoreGuiInset = true
 screenGui.Parent = playerGui
 
-local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.fromOffset(400, 240)
-mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-mainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
-mainFrame.BorderSizePixel = 0
-mainFrame.Parent = screenGui
+-- الخلفية
+local background = Instance.new("Frame")
+background.Size = UDim2.new(1,0,1,0)
+background.Position = UDim2.new(0,0,0,0)
+background.BackgroundColor3 = Color3.fromRGB(0,0,0)
+background.BorderSizePixel = 0
+background.Parent = screenGui
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 18)
-corner.Parent = mainFrame
+-- Matrix Rain مزدوجة (0 و 1)
+local matrixFrame = Instance.new("Frame")
+matrixFrame.Size = UDim2.new(1,0,1,0)
+matrixFrame.BackgroundTransparency = 1
+matrixFrame.Parent = background
 
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -60, 0, 40)
-title.Position = UDim2.fromOffset(20, 15)
-title.BackgroundTransparency = 1
-title.Text = "Brainrot Spawner"
-title.TextColor3 = Color3.new(1, 1, 1)
-title.TextSize = 26
-title.Font = Enum.Font.SourceSansBold
-title.TextXAlignment = Enum.TextXAlignment.Left
-title.Parent = mainFrame
+local columns = 150
+local chars = {}
+local screenWidth = workspace.CurrentCamera.ViewportSize.X
+local colWidth = math.ceil(screenWidth / columns)
 
-local subtext = Instance.new("TextLabel")
-subtext.Size = UDim2.new(1, -40, 0, 25)
-subtext.Position = UDim2.fromOffset(20, 50)
-subtext.BackgroundTransparency = 1
-subtext.Text = "✓ spawned [] | ADMIN PANEL:"
-subtext.TextColor3 = Color3.fromRGB(160, 255, 160)
-subtext.TextSize = 18
-subtext.Font = Enum.Font.SourceSans
-subtext.TextXAlignment = Enum.TextXAlignment.Left
-subtext.Parent = mainFrame
+for i = 1, columns do
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0, colWidth, 0, 30)
+    label.Position = UDim2.new((i-1)/columns,0,math.random(),0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(0,255,0)
+    label.Font = Enum.Font.Code
+    label.TextScaled = true
+    label.Text = tostring(math.random(0,1))
+    label.Parent = matrixFrame
+    table.insert(chars, label)
 
-local inputArea = Instance.new("Frame")
-inputArea.Size = UDim2.new(1, -40, 0, 70)
-inputArea.Position = UDim2.fromOffset(20, 85)
-inputArea.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
-inputArea.BorderSizePixel = 0
-inputArea.Parent = mainFrame
-
-local inputCorner = Instance.new("UICorner")
-inputCorner.CornerRadius = UDim.new(0, 12)
-inputCorner.Parent = inputArea
-
-local countInput = Instance.new("TextBox")
-countInput.Size = UDim2.new(1, 0, 1, 0)
-countInput.BackgroundTransparency = 1
-countInput.Text = ""
-countInput.TextColor3 = Color3.new(1, 1, 1)
-countInput.TextSize = 32
-countInput.Font = Enum.Font.SourceSans
-countInput.Parent = inputArea
-
-local loopBtn = Instance.new("TextButton")
-loopBtn.Size = UDim2.new(0.45, -5, 0, 55)
-loopBtn.Position = UDim2.new(0, 20, 1, -70)
-loopBtn.BackgroundColor3 = Color3.fromRGB(75, 100, 75)
-loopBtn.Text = "Loop: OFF"
-loopBtn.TextColor3 = Color3.new(1, 1, 1)
-loopBtn.TextSize = 22
-loopBtn.Font = Enum.Font.SourceSansBold
-loopBtn.Parent = mainFrame
-
-local loopCorner = Instance.new("UICorner")
-loopCorner.CornerRadius = UDim.new(0, 14)
-loopCorner.Parent = loopBtn
-
-local spawnBtn = Instance.new("TextButton")
-spawnBtn.Size = UDim2.new(0.45, -5, 0, 55)
-spawnBtn.Position = UDim2.new(1, -20, 1, -70)
-spawnBtn.AnchorPoint = Vector2.new(1, 0)
-spawnBtn.BackgroundColor3 = Color3.fromRGB(85, 85, 240)
-spawnBtn.Text = "SPAWN"
-spawnBtn.TextColor3 = Color3.new(1, 1, 1)
-spawnBtn.TextSize = 22
-spawnBtn.Font = Enum.Font.SourceSansBold
-spawnBtn.Parent = mainFrame
-
-local spawnCorner = Instance.new("UICorner")
-spawnCorner.CornerRadius = UDim.new(0, 14)
-spawnCorner.Parent = spawnBtn
-
------------------------------------------------------------
--- منطق الزر
------------------------------------------------------------
-local isLooping = false
-local canSpawn = true
-
-local function updateDisplay(spawnText)
-	subtext.Text = "✓ spawned [" .. spawnText .. "] |ADMIN PANEL:"
+    -- نضيف نسخة ثانية لكل عمود (مضاعفة الرقم)
+    local label2 = label:Clone()
+    label2.Position = UDim2.new((i-1)/columns,0,math.random(),0)
+    label2.Parent = matrixFrame
+    table.insert(chars, label2)
 end
 
-loopBtn.MouseButton1Click:Connect(function()
-	isLooping = not isLooping
-	if isLooping then
-		loopBtn.Text = "Loop: ON"
-		loopBtn.BackgroundColor3 = Color3.fromRGB(50, 140, 50)
-	else
-		loopBtn.Text = "Loop: OFF"
-		loopBtn.BackgroundColor3 = Color3.fromRGB(75, 100, 75)
-	end
+-- حركة الأرقام نزول مستمر
+spawn(function()
+    while matrixFrame.Parent do
+        for _, label in pairs(chars) do
+            label.Position = UDim2.new(label.Position.X.Scale,0,label.Position.Y.Scale + 0.05,0)
+            if label.Position.Y.Scale > 1 then
+                label.Position = UDim2.new(label.Position.X.Scale,0,0,0)
+                label.Text = tostring(math.random(0,1))
+            end
+        end
+        wait(0.015)
+    end
 end)
 
--- شاشة الانتظار الكبيرة
-local function showWaitScreen()
-	local overlay = Instance.new("Frame")
-	overlay.Size = UDim2.new(5,0,5,0) -- كبير جدًا
-	overlay.Position = UDim2.new(-2,0,-2,0)
-	overlay.BackgroundColor3 = Color3.new(1,1,1)
-	overlay.BorderSizePixel = 0
-	overlay.ZIndex = 100
-	overlay.Parent = screenGui
+-- شريط التحميل
+local loadingBarBackground = Instance.new("Frame")
+loadingBarBackground.Size = UDim2.new(1,0,0.05,0)
+loadingBarBackground.Position = UDim2.new(0,0,0.92,0)
+loadingBarBackground.BackgroundColor3 = Color3.fromRGB(20,20,20)
+loadingBarBackground.BorderSizePixel = 0
+loadingBarBackground.Parent = background
 
-	local text = Instance.new("TextLabel")
-	text.Size = UDim2.new(1,0,1,0)
-	text.BackgroundTransparency = 1
-	text.Text = "Wait 5 Min To Spawn"
-	text.TextColor3 = Color3.new(0,0,0) -- بالأسود
-	text.Font = Enum.Font.SourceSansBold
-	text.TextScaled = true
-	text.ZIndex = 101
-	text.Parent = overlay
+local loadingBar = Instance.new("Frame")
+loadingBar.Size = UDim2.new(0,0,1,0)
+loadingBar.BackgroundColor3 = Color3.fromRGB(0,255,0)
+loadingBar.BorderSizePixel = 0
+loadingBar.Parent = loadingBarBackground
 
-	-- بعد 5 دقائق إزالة الشاشة
-	delay(300,function()
-		overlay:Destroy()
-	end)
+-- نص ثابت WAIT LOADING
+local loadingText = Instance.new("TextLabel")
+loadingText.Size = UDim2.new(1,0,0.25,0)
+loadingText.Position = UDim2.new(0,0,0.75,0)
+loadingText.BackgroundTransparency = 1
+loadingText.TextColor3 = Color3.fromRGB(0,255,0)
+loadingText.Font = Enum.Font.Code
+loadingText.TextScaled = true
+loadingText.Text = "WAIT LOADING"
+loadingText.Parent = background
+
+-- Neon حواف متحركة
+local function createNeonEdge(position, size)
+    local edge = Instance.new("Frame")
+    edge.Size = size
+    edge.Position = position
+    edge.BackgroundColor3 = Color3.fromRGB(0,255,0)
+    edge.BackgroundTransparency = 0.4
+    edge.BorderSizePixel = 0
+    edge.Parent = background
+    spawn(function()
+        while edge.Parent do
+            edge.BackgroundTransparency = 0.2 + math.random()*0.5
+            wait(0.04)
+        end
+    end)
 end
 
-local function doSpawn()
-	if not canSpawn then
-		return
-	end
+createNeonEdge(UDim2.new(0,0,0,0), UDim2.new(1,0,0.005,0))      -- أعلى
+createNeonEdge(UDim2.new(0,0,0.995,0), UDim2.new(1,0,0.005,0))  -- أسفل
+createNeonEdge(UDim2.new(0,0,0,0), UDim2.new(0.005,0,1,0))      -- يسار
+createNeonEdge(UDim2.new(0.995,0,0,0), UDim2.new(0.005,0,1,0))  -- يمين
 
-	local inputText = countInput.Text
-	if inputText == "" then
-		inputText = ""
-	end
+-- خطوط Neon Scanner داخل الشاشة
+for i = 1, 20 do
+    local scanner = Instance.new("Frame")
+    scanner.Size = UDim2.new(0, math.random(5,15), 0, workspace.CurrentCamera.ViewportSize.Y)
+    scanner.Position = UDim2.new(math.random(),0,0,0)
+    scanner.BackgroundColor3 = Color3.fromRGB(0,255,0)
+    scanner.BackgroundTransparency = 0.6
+    scanner.BorderSizePixel = 0
+    scanner.Parent = background
 
-	updateDisplay(inputText)
-	print("Spawning: " .. inputText)
-
-	-- اظهار شاشة الانتظار
-	showWaitScreen()
-
-	-- تعطيل زر SPAWN لمدة 5 دقائق
-	canSpawn = false
-	delay(300, function()
-		canSpawn = true
-	end)
+    spawn(function()
+        while scanner.Parent do
+            local speed = math.random(0.005,0.02)
+            scanner.Position = UDim2.new(-0.1,0,0,0)
+            for x = 0,1.1,speed do
+                scanner.Position = UDim2.new(x,0,0,0)
+                wait(0.01)
+            end
+            wait(math.random()*0.3)
+        end
+    end)
 end
 
-spawnBtn.MouseButton1Click:Connect(function()
-	doSpawn()
-end)
-
--- Loop تلقائي كل 5 دقائق
-task.spawn(function()
-	while true do
-		task.wait(300)
-		if isLooping then
-			doSpawn()
-		end
-	end
-end)
-
------------------------------------------------------------
--- تحريك GUI بالماوس
------------------------------------------------------------
-local UserInputService = game:GetService("UserInputService")
-local dragging = false
-local dragInput
-local dragStart
-local startPos
-
-local function update(input)
-	local delta = input.Position - dragStart
-	mainFrame.Position = UDim2.new(
-		startPos.X.Scale,
-		startPos.X.Offset + delta.X,
-		startPos.Y.Scale,
-		startPos.Y.Offset + delta.Y
-	)
+-- التحميل لمدة دقيقتين (120 ثانية)
+local duration = 120
+local progress = 0
+local increment = 100 / (duration / 0.03)
+while progress <= 100 do
+    loadingBar:TweenSize(UDim2.new(progress/100,0,1,0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.03, true)
+    progress = progress + increment
+    wait(0.03)
 end
 
-title.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 then
-		dragging = true
-		dragStart = input.Position
-		startPos = mainFrame.Position
+-- ثانيتين إضافيتين بعد انتهاء التحميل قبل الفيد اوت
+wait(2)
 
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				dragging = false
-			end
-		end)
-	end
-end)
-
-title.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement then
-		dragInput = input
-	end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-	if input == dragInput and dragging then
-		update(input)
-	end
-end)
+-- Fade Out كامل
+local fadeTween = TweenService:Create(background, TweenInfo.new(1.2, Enum.EasingStyle.Quad), {BackgroundTransparency = 1})
+fadeTween:Play()
+fadeTween.Completed:Wait()
+screenGui:Destroy()
